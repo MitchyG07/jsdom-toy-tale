@@ -38,11 +38,37 @@ function fetchToys(toy) {
   //fetch
   fetch('http://localhost:3000/toys', configObj)
     .then(resp => resp.json())
-    .then(toy => addAllToys(toy))
+    .then(toy => addToyInfo(toy))
     .catch(() => {
       alert("Hey, youre fine")
     })
   }
+
+function patchToy(toy) {
+
+    const configObj = {
+      method: 'PATCH',
+      headers: {
+        'Content-Type':'application/json',
+    },
+      body:JSON.stringify(toy)
+    }
+    
+    fetch(`http://localhost:3000/toys/${toy.id}`,configObj)
+    .then(resp => resp.json())
+    .then(toy => {
+      addLikes(toy)
+    })
+    .catch(() => {
+      console.log("whoops")
+    })
+  }
+
+function addLikes(toy) {
+  let id = toy.name
+  let p = document.getElementById(id)
+  p.textContent = `Likes: ${toy.likes}`
+} 
 
 function addAllToys() {
   return fetch('http://localhost:3000/toys')
@@ -61,15 +87,15 @@ function addToyInfo(toy) {
   div.className = 'card'
   img.className = 'toy-avatar'
   btn.className = 'like-btn'
-  p.id = toy.name
   //add event listener
-  btn.addEventListener('click',addLikes)
+  btn.addEventListener('click',updateLikes)
   //pass toy to those elements
   h2.textContent = toy.name
   img.src = toy.image
   p.textContent = `Likes: ${toy.likes}`
   btn.textContent = "Like"
   btn.id = toy.id
+  p.id = toy.name
   allToys.push(toy)
   //append children
   toyCollection.appendChild(div)
@@ -91,18 +117,19 @@ function handleSubmit(e) {
   fetchToys(toy)
 }
 
-function updateLikes(likes, p) {
-  p.innerHTML = `Likes: ${likes}`
+//update likes
+function updateLikes(e) {
+  let selectedToy = allToys.find(toy => toy.id === parseInt(e.target.id, 10))
+  likes = selectedToy.likes ++
+  let likedToy = {
+    "id": selectedToy.id,
+    "name": selectedToy.name,
+    "image": selectedToy.image,
+    "likes": likes
+  }
+  patchToy(likedToy)
 }
-//add Likes to Toys 
-function addLikes(e) {
-  let selection = parseInt(e.target.id,10)
-  let toy = allToys.find(toy => toy.id === selection)
-  let p = document.getElementById(`${toy.name}`)
-  likes = toy.likes + 1
-  p.innerHTML = ` `
-  updateLikes(likes, p)
-}
+
 
 //listeners
 function addEventListeners() {
